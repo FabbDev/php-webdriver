@@ -294,6 +294,32 @@ abstract class AbstractWebDriver
     }
 
     /**
+     * Serialize script arguments (containing web elements and/or shadow roots)
+     *
+     * @see https://w3c.github.io/webdriver/#executing-script
+     *
+     * @param array $arguments
+     *
+     * @return array
+     */
+    protected function serializeArguments(array $arguments)
+    {
+      foreach ($arguments as $key => $value) {
+        if ($value instanceof LegacyElement) {
+          $arguments[$key] = [LegacyElement::LEGACY_ELEMENT_ID => $value->getID()];
+        } elseif ($value instanceof Element) {
+          $arguments[$key] = [Element::WEB_ELEMENT_ID => $value->getID()];
+        } elseif ($value instanceof Shadow) {
+          $arguments[$key] = [Shadow::SHADOW_ROOT_ID => $value->getID()];
+        } elseif (is_array($value)) {
+          $arguments[$key] = $this->serializeArguments($value);
+        }
+      }
+
+      return $arguments;
+    }
+
+    /**
      * Sanity check
      *
      * @param mixed $parameters
